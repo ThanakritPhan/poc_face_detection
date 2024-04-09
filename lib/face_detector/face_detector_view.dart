@@ -240,8 +240,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //อ้าปาก
         if (action == "อ้าปาก") {
           actionText = "วางหน้าตรง";
-          if (((headEulerAngleX! >= -2) && (headEulerAngleX! <= 6)) &&
-              ((headEulerAngleY! >= -2) && (headEulerAngleY! <= 3))) {
+          if (((headEulerAngleX! >= -4) && (headEulerAngleX! <= 9)) &&
+              ((headEulerAngleY! >= -3) && (headEulerAngleY! <= 3))) {
             actionText = "อ้าปาก";
             if ((faces.first.landmarks[FaceLandmarkType.bottomMouth]!.position
                         .y -
@@ -268,8 +268,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //หลับตา
         if (action == "หลับตา") {
           actionText = "วางหน้าตรง";
-          if (((headEulerAngleX! >= -2) && (headEulerAngleX! <= 6)) &&
-              ((headEulerAngleY! >= -2) && (headEulerAngleY! <= 3))) {
+          if (((headEulerAngleX! >= -3) && (headEulerAngleX! <= 6)) &&
+              ((headEulerAngleY! >= -3) && (headEulerAngleY! <= 3))) {
             actionText = "หลับตา";
             if ((leftEyeOpenProbability! <= 0.2) &&
                 (rightEyeOpenProbability! <= 0.2)) {
@@ -279,7 +279,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
               });
             }
 
-            if (count >= 5) {
+            if (count >= 1) {
               count = 0.0;
               i++;
             }
@@ -293,8 +293,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //หันซ้าย
         if (action == "หันซ้าย") {
           actionText = "หันหน้าทางซ้าย";
-          if (((headEulerAngleX! >= 7) && (headEulerAngleX! <= 15)) &&
-              ((headEulerAngleY! >= 42) && (headEulerAngleY! <= 55))) {
+          if (((headEulerAngleX! >= 2) && (headEulerAngleX! <= 15)) &&
+              ((headEulerAngleY! >= 40) && (headEulerAngleY! <= 60))) {
             actionText = "${count.toInt()}";
             setState(() {
               count += 0.33;
@@ -313,8 +313,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //หันขวา
         if (action == "หันขวา") {
           actionText = "หันหน้าทางขวา";
-          if (((headEulerAngleX! >= 3) && (headEulerAngleX! <= 11)) &&
-              ((headEulerAngleY! >= -55) && (headEulerAngleY! <= -42))) {
+          if (((headEulerAngleX! >= 2) && (headEulerAngleX! <= 15)) &&
+              ((headEulerAngleY! >= -60) && (headEulerAngleY! <= -40))) {
             actionText = "${count.toInt()}";
             setState(() {
               count += 0.33;
@@ -333,7 +333,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //ก้มหัว
         if (action == "ก้มหัว") {
           actionText = "ก้มหัวลง";
-          if (((headEulerAngleX! >= -32) && (headEulerAngleX! <= -25))) {
+          if (((headEulerAngleX! >= -32) && (headEulerAngleX! <= -16))) {
             actionText = "${count.toInt()}";
             setState(() {
               count += 0.33;
@@ -352,7 +352,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //เงยหน้า
         if (action == "เงยหน้า") {
           actionText = "เงยหน้าขึ้น";
-          if (((headEulerAngleX! >= 42) && (headEulerAngleX! <= 55))) {
+          if (((headEulerAngleX! >= 30) && (headEulerAngleX! <= 55))) {
             actionText = "${count.toInt()}";
             setState(() {
               count += 0.33;
@@ -371,8 +371,8 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //เอียงขวา
         if (action == "เอียงขวา") {
           actionText = "เอียงหน้าทางขวา";
-          if (((headEulerAngleX! >= 5) && (headEulerAngleX! <= 9)) &&
-              ((headEulerAngleY! >= -34) && (headEulerAngleY! <= -18))) {
+          if (((headEulerAngleX! >= 2) && (headEulerAngleX! <= 12)) &&
+              ((headEulerAngleY! >= -39) && (headEulerAngleY! <= -18))) {
             actionText = "${count.toInt()}";
             setState(() {
               count += 0.33;
@@ -391,7 +391,7 @@ class _FaceDetectorViewState extends State<FaceDetectorView> {
         //เอียงซ้าย
         if (action == "เอียงซ้าย") {
           actionText = "เอียงหน้าทางซ้าย";
-          if (((headEulerAngleX! >= 5) && (headEulerAngleX! <= 9)) &&
+          if (((headEulerAngleX! >= 2) && (headEulerAngleX! <= 9)) &&
               ((headEulerAngleY! >= 18) && (headEulerAngleY! <= 37))) {
             actionText = "${count.toInt()}";
             setState(() {
