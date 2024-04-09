@@ -1,0 +1,11 @@
+enum FaceActionsConstant{
+  LOOK_STRAIGHT,
+  MOUTH_OPEN,
+  EYES_CLOSED,
+  HEAD_DOWN,
+  HEAD_UP,
+  TURN_LEFT,
+  TURN_RIGHT,
+  TILT_FACE_LEFT,
+  TILT_FACE_RIGHT,
+}
