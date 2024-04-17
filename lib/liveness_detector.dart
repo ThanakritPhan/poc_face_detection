@@ -273,8 +273,8 @@ class _LivenessDetectorViewState extends State<LivenessDetectorView> {
           if (((headEulerAngleX! >= -5) && (headEulerAngleX! <= 5)) &&
               ((headEulerAngleY! >= -5) && (headEulerAngleY! <= 3)) &&
               ((headEulerAngleZ! >= -2) && (headEulerAngleZ! <= 2))) {
-            if ((leftEyeOpenProbability! <= 0.5 ||
-                rightEyeOpenProbability! <= 0.5) &&
+            if ((leftEyeOpenProbability! <= 0.3 ||
+                rightEyeOpenProbability! <= 0.3) &&
                 (trueeye == true)) {
               trueeye = false;
               setState(() {
