@@ -89,6 +89,13 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
   String? actionText = "มองตรง และกระพริบตา";
   String? action = "หน้าตรง";
 
+  double _currentZoomLevel = 1.0;
+  double _minAvailableZoom = 1.0;
+  double _maxAvailableZoom = 1.0;
+  double _minAvailableExposureOffset = 0.0;
+  double _maxAvailableExposureOffset = 0.0;
+  double _currentExposureOffset = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -123,10 +130,11 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
   }
 
   Color _getMIddleColorFromYUV420(CameraImage image) {
-    int? bytesPerRow = image.planes[2].bytesPerRow;
-    int? bytesPerPixel = image.planes[2].bytesPerPixel;
     width = image.width;
     height = image.height;
+
+    int? bytesPerRow = image.planes[2].bytesPerRow;
+    int? bytesPerPixel = image.planes[2].bytesPerPixel;
 
     int x = (width / 2).floor() - 1;
     int y = (height / 2).floor() - 1;
@@ -189,8 +197,14 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
 
     List<CameraDescription> cameras = await availableCameras();
     // Create the CameraController
-    _camera =
-        CameraController(cameras[1], ResolutionPreset.max, enableAudio: false);
+    _camera = CameraController(
+      cameras[1],
+      ResolutionPreset.max,
+      enableAudio: false,
+      // imageFormatGroup: Platform.isAndroid
+      //   ? ImageFormatGroup.nv21
+      //   : ImageFormatGroup.bgra8888,
+    );
     // Initialize the CameraController
     _camera!.initialize().then((_) async {
       // Start ImageStream
@@ -199,6 +213,21 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
       setState(() {
         _cameraInitialized = true;
       });
+      _camera?.getMinZoomLevel().then((value) {
+        _currentZoomLevel = value;
+        _minAvailableZoom = value;
+      });
+      _camera?.getMaxZoomLevel().then((value) {
+        _maxAvailableZoom = value;
+      });
+      _currentExposureOffset = 0.0;
+      _camera?.getMinExposureOffset().then((value) {
+        _minAvailableExposureOffset = value;
+      });
+      _camera?.getMaxExposureOffset().then((value) {
+        _maxAvailableExposureOffset = value;
+      });
+      setState(() {});
     });
   }
 
@@ -207,11 +236,14 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
   void _processCameraImage(CameraImage image) async {
     setState(() {
       middleColor = _getMIddleColorFromYUV420(image);
+      count+=0.03;
+      //count=1;
     });
+
     //ต้องแปลง yuv -> nv21 (android)
     // nv21 = await yuv420ToNV21(image);
     // if (nv21 != null) {
-    //   inputImage = await _inputImageFromCameraImage(nv21);
+    // inputImage = await _inputImageFromCameraImage(image);
     // }
 
     // if (inputImage != null) {
@@ -274,10 +306,7 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
           text += 'face: ${face.boundingBox}\n\n';
         }
         _text = text;
-
-      } else {
-        
-      }
+      } else {}
     } catch (e) {
       faceCount = 0;
       position = "";
@@ -355,8 +384,9 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
 
     return nv21;
   }
+
   // INPUTIMAGE
-  InputImage? _inputImageFromCameraImage(List<int> nv21Data) {
+  InputImage? _inputImageFromCameraImage(CameraImage image) {
     if (_camera == null) return null;
 
     // get image rotation
@@ -389,30 +419,28 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
     // print('final rotation: $rotation');
 
     // get image format
-    final format = Platform.isAndroid ? InputImageFormat.nv21 : InputImageFormat.bgra8888;//InputImageFormatValue.fromRawValue(image.format.raw);
+    final format = InputImageFormatValue.fromRawValue(image.format.raw);
     // validate format depending on platform
     // only supported formats:
     // * nv21 for Android
+    print(format);
     // * bgra8888 for iOS
-    
     if (format == null ||
         (Platform.isAndroid && format != InputImageFormat.nv21) ||
         (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
-    print("00000000000000000000000000000000000");
-    // since format is constraint to nv21 or bgra8888, both only have one plane
-    //3***********
-    // if (image.planes.length != 1) return null;
 
-    // final plane = image.planes.first;
+    // since format is constraint to nv21 or bgra8888, both only have one plane
+    if (image.planes.length != 1) return null;
+    final plane = image.planes.first;
 
     // compose InputImage using bytes
     return InputImage.fromBytes(
-      bytes: Uint8List.fromList(nv21Data),
+      bytes: plane.bytes,
       metadata: InputImageMetadata(
-        size: Size(width.toDouble(), height.toDouble()),
+        size: Size(image.width.toDouble(), image.height.toDouble()),
         rotation: rotation, // used only in Android
         format: format, // used only in iOS
-        bytesPerRow: _camera!.value.previewSize!.width.toInt(), // used only in iOS
+        bytesPerRow: plane.bytesPerRow, // used only in iOS
       ),
     );
   }
@@ -420,7 +448,7 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
   //-------------->
   @override
   Widget build(BuildContext context) {
-    if (count >= 3.5 && count < 4.5) {
+    if (count >= 3.5 && count < 5.0) {
       return Scaffold(
         body: Stack(
           children: [
@@ -453,6 +481,45 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
                 ),
               ),
             ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Text(_text??"-",style: TextStyle(color: Colors.white)),
+                  Container(
+                    color: Colors.black54,
+                    padding: const EdgeInsets.all(7.0),
+                    margin: const EdgeInsets.only(bottom: 70.0),
+                    child: Column(
+                      children: [
+                        Text(
+                            "Blink: ${blink}\n"
+                            "faceCount: ${faceCount}\n"
+                            "headEulerAngleX: ${headEulerAngleX}\n"
+                            "headEulerAngleY: ${headEulerAngleY}\n"
+                            "headEulerAngleZ: ${headEulerAngleZ}\n"
+                            "landmarksNoseBase: ${landmarksNoseBase}\n",
+                            style: TextStyle(color: Colors.white)),
+                        Text("color: ${middleColor}\n",
+                            style: TextStyle(color: middleColor)),
+                        Text(
+                            "blue: ${middleColor.blue} green: ${middleColor.green} red: ${middleColor.red*7654321}\n",
+                            style: TextStyle(color: middleColor)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.center,
+              child: Text(
+                "o",
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
           ],
         ),
       );
@@ -461,16 +528,18 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
         body: Stack(
           children: [
             if (_cameraInitialized)
-              SizedBox(
-                height: width * 1.0,
-                width: height * 1.0,
-                child: AspectRatio(
-                  aspectRatio: _camera!.value.aspectRatio,
-                  child: CameraPreview(
-                    _camera!,
-                  ),
-                ),
-              )
+              Container(
+                  color: Colors.black,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: <Widget>[
+                      Center(
+                        child: CameraPreview(
+                          _camera!,
+                        ),
+                      ),
+                    ],
+                  ))
             else
               const Center(child: CircularProgressIndicator()),
             Align(
@@ -561,6 +630,9 @@ class _CameraColorPickerBackendState extends State<CameraColorPickerBackend> {
                             "landmarksNoseBase: ${landmarksNoseBase}\n",
                             style: TextStyle(color: Colors.white)),
                         Text("color: ${middleColor}\n",
+                            style: TextStyle(color: middleColor)),
+                        Text(
+                            "blue: ${middleColor.blue} green: ${middleColor.green} red: ${middleColor.red*7654321}\n",
                             style: TextStyle(color: middleColor)),
                       ],
                     ),
